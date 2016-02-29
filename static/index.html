@@ -288,11 +288,12 @@ mouse.mousedraggers.push(function(x,y,clicked,e) {
 
 function update() {
     //XXX: TODO Get the world from the webservice using a XMLHTTPRequest
-    sendJSONXMLHTTPRequest('/world', null, function(data) {
-	world = data;
-	drawNextFrame();
-	drawFrame(); 
+    sendJSONXMLHTTPRequest("GET","/world",world, function (data) {
+        world=data;
     });
+    drawNextFrame();
+    drawFrame();
+}
 }
 
 // 30 frames per second
