@@ -31,44 +31,48 @@ var context = canvas.getContext("2d");
 var W = canvas.width  = window.innerWidth-6;
 var H = canvas.height = window.innerHeight-50;
 
-
-function sendJSONXMLHTTPRequest(url, objects, callback) {
+function sendJSONXMLHTTPRequest(method, url, objects, callback) {
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function () {
         if (xhr.readyState==4) {
             try {
                 if (xhr.status==200) {
-                //XXX: parse some JSON from the request!
-                //XXX: Pass the data to the callback!
-                    var data = JSON.parse(xhr.responseText);
-                    //If the callback isn't null, pass to the callback json
-                    if (callback!= null) {
-                        callback(data);
-                    }
+                    //XXX: parse some JSON from the request!
+                    //XXX: Pass the data to the callback!
+                    var json = JSON.parse(xhr.responseText);
 
+                    //If the callback isn't null (only if method is a GET), pass to the callback json
+                    if (callback!= null) {
+                        callback(json);
+                    }
                 }
             } 
             catch(e) {
-                alert('Error: ' + e.name);
+                alert('Error: ' + e.name + ' for ' + url);
             }
         }
     };
     //XXX: POST to a URL
     //XXX: set the mimetype and the accept headers!
     // Remember to use application/json !
-    xhr.open("POST", url, true);
-    xhr.setRequestHeader("Content-Type", "application/json");
-    xhr.setRequestHeader("Accept", "application/json");
-    xhr.send(JSON.stringify(objects));
+
+    if (method=="POST") {
+        xhr.open("POST",url,true);
+        //Set mime type and accept headers
+        xhr.setRequestHeader("Content-Type","application/json");
+        xhr.setRequestHeader("Content-Length", objects.length);
+        xhr.setRequestHeader("Accept", "application/json");
+
+        //Convert the objects to JSON and post it
+         xhr.send(JSON.stringify(objects));
      }
-     //If the method is a GET
+
+     //If the method is a GET, go here
      else {
         xhr.open("GET", url, true);
         xhr.send();
      }
 }
-
-
 
 
 world = {};
@@ -87,13 +91,13 @@ function drawCircle(context,entity) {
         strokeStyle = fillStyle;
         arc(x, y, (entity["radius"])?entity["radius"]:50, 0, 2.0 * Math.PI, false);  
         stroke();  
-        fill();                               
+        fill();                              
     }
 }
 
 function prepEntity(entity) {
     if (!entity["colour"]) {
-        entity["colour"] = "#FF0000";
+        entity["colour"] = "#FFFFFF";
     }
     if (!entity["radius"]) {
         entity["radius"] = 50;
@@ -154,19 +158,19 @@ function getPosition(e) {
 	}
 }
 
-
 function addEntity(entity, data) {
     world[entity] = data;
     drawNextFrame(); // (but should we?)
     //XXX: Send a XHTML Request that updates the entity you just  modified!
-    entity = encodeURIComponent(entity);
-    sendJSONXMLHTTPRequest('/entity/' + entity, world[entity], update);
+    //Since an entity was added, need to post in this case
+    sendJSONXMLHTTPRequest("POST","/entity/" + entity, world[entity], null);
+
 }
 
 var counter = 0;
 function addEntityWithoutName(data) {
-    //var name = "X"+Math.floor((Math.random()*100)+1);
-    var name = "X"+(counter++)%100;
+    var name = "X"+Math.floor((Math.random()*100)+1);
+    //var name = "X"+(counter++)%100;
     addEntity(name,data);
 }
 
@@ -208,7 +212,7 @@ mouse = (function() {
                 var y = pos[1];
 	        self.clicked = 1;
                 self.callListeners(self.mousedowners,x,y,self.clicked,e);
-                //addEntityWithoutName({'x':x,'y':y,'colour':'red'});
+                //addEntityWithoutName({'x':x,'y':y,'colour':'#009933'});
             }
         },
         mouseup: function(e) {
@@ -222,7 +226,7 @@ mouse = (function() {
 	        self.clicked = 0;
                 self.selected = -1;
                 self.callListeners(self.mouseuppers,x,y,self.clicked,e);
-                //addEntityWithoutName({'x':x,'y':y,'colour':'blue'});
+                //addEntityWithoutName({'x':x,'y':y,'colour':'#009933'});
             }
         },
         touchstart: function(e) {
@@ -269,30 +273,31 @@ mouse = (function() {
 // Add the application specific mouse listeners!
 //XXX: TODO Make these prettier!
 mouse.mousedowners.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'blue','radius':20});
+    addEntityWithoutName({'x':x,'y':y,'colour':'blue', 'radius':8});
 });
 
 mouse.mouseuppers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'red','radius':20});
+    addEntityWithoutName({'x':x,'y':y,'colour':'green', 'radius': 8});
 });
 
 mouse.mousedraggers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'green',
-                          'radius':10});
+    addEntityWithoutName({'x':x,'y':y,'colour':'orange',
+                          'radius':7});
 });
 
 
 function update() {
     //XXX: TODO Get the world from the webservice using a XMLHTTPRequest
-    sendJSONXMLHTTPRequest('/world', null, updateWorld);
-    drawFrame()
+    sendJSONXMLHTTPRequest("GET","/world",world, function (otherWorld) {
+        world=otherWorld;
+    });
+    drawNextFrame();
+    drawFrame();
 
 }
 
 // 30 frames per second
 setInterval( update, 1000/30.0);
-
-
 
     </script>
 </body>
