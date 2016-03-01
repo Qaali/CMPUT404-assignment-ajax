@@ -85,13 +85,15 @@ function drawCircle(context,entity) {
         var x = entity["x"];
         var y = entity["y"];
         //moveTo(x,y);
-        fillStyle = entity["colour"];
-        shadowColor="#f1f1f1";
-        shadowBlur=8;
-        strokeStyle = fillStyle;
+	var grd=createLinearGradient(0,0,W,0);
+	grd.addColorStop(0,"blue");
+	grd.addColorStop(0.5,"red");
+	grd.addColorStop(1,"yellow");
+        fillStyle=grd;
+	strokeStyle = fillStyle;
         arc(x, y, (entity["radius"])?entity["radius"]:50, 0, 2.0 * Math.PI, false);  
-        stroke();  
-        fill();                              
+	fill();
+        stroke();                                
     }
 }
 
@@ -273,23 +275,23 @@ mouse = (function() {
 // Add the application specific mouse listeners!
 //XXX: TODO Make these prettier!
 mouse.mousedowners.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'blue', 'radius':8});
+    addEntityWithoutName({'x':x,'y':y,'colour':'blue'});
 });
 
 mouse.mouseuppers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'yellow', 'radius': 8});
+    addEntityWithoutName({'x':x,'y':y,'colour':'red'});
 });
 
 mouse.mousedraggers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'red',
+    addEntityWithoutName({'x':x,'y':y,'colour':'yellow',
                           'radius':7});
 });
 
 
 function update() {
     //XXX: TODO Get the world from the webservice using a XMLHTTPRequest
-    sendJSONXMLHTTPRequest("GET","/world",world, function (updateWorld) {
-        world=updateWorld;
+    sendJSONXMLHTTPRequest("GET","/world",world, function (otherWorld) {
+        world=otherWorld;
     });
     drawNextFrame();
     drawFrame();
