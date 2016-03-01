@@ -55,18 +55,15 @@ function sendJSONXMLHTTPRequest(method, url, objects, callback) {
     //XXX: POST to a URL
     //XXX: set the mimetype and the accept headers!
     // Remember to use application/json !
-
     if (method=="POST") {
         xhr.open("POST",url,true);
         //Set mime type and accept headers
         xhr.setRequestHeader("Content-Type","application/json");
         xhr.setRequestHeader("Content-Length", objects.length);
         xhr.setRequestHeader("Accept", "application/json");
-
         //Convert the objects to JSON and post it
          xhr.send(JSON.stringify(objects));
      }
-
      //If the method is a GET, go here
      else {
         xhr.open("GET", url, true);
@@ -99,7 +96,7 @@ function drawCircle(context,entity) {
 
 function prepEntity(entity) {
     if (!entity["colour"]) {
-        entity["colour"] = "#FFFFFF";
+        entity["colour"] = "#FF0000";
     }
     if (!entity["radius"]) {
         entity["radius"] = 50;
@@ -290,8 +287,8 @@ mouse.mousedraggers.push(function(x,y,clicked,e) {
 
 function update() {
     //XXX: TODO Get the world from the webservice using a XMLHTTPRequest
-    sendJSONXMLHTTPRequest("GET","/world",world, function (otherWorld) {
-        world=otherWorld;
+    sendJSONXMLHTTPRequest("GET","/world",world, function (updateWorld) {
+        world=updateWorld;
     });
     drawNextFrame();
     drawFrame();
